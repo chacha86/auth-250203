@@ -5,6 +5,7 @@ import com.example.auth.domain.member.member.service.MemberService;
 import com.example.auth.domain.post.post.dto.PostDto;
 import com.example.auth.domain.post.post.entity.Post;
 import com.example.auth.domain.post.post.service.PostService;
+import com.example.auth.global.Rq;
 import com.example.auth.global.dto.RsData;
 import com.example.auth.global.exception.ServiceException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,8 +25,7 @@ import java.util.Optional;
 public class ApiV1PostController {
 
     private final PostService postService;
-    private final MemberService memberService;
-    private final HttpServletRequest request;
+    private final Rq rq;
 
     @GetMapping
     public RsData<List<PostDto>> getItems() {
@@ -58,7 +58,7 @@ public class ApiV1PostController {
     @DeleteMapping("/{id}")
     public RsData<Void> delete(@PathVariable long id) {
 
-        Member actor = getAuthenticatedActor();
+        Member actor = rq.getAuthenticatedActor();
         Post post = postService.getItem(id).get();
 
         if (post.getAuthor().getId() != actor.getId()) {
@@ -83,7 +83,7 @@ public class ApiV1PostController {
     public RsData<Void> modify(@PathVariable long id, @RequestBody @Valid ModifyReqBody body
     ) {
 
-        Member actor = getAuthenticatedActor();
+        Member actor = rq.getAuthenticatedActor();
         Post post = postService.getItem(id).get();
 
         if (post.getAuthor().getId() != actor.getId()) {
@@ -108,7 +108,7 @@ public class ApiV1PostController {
     @PostMapping
     public RsData<PostDto> write(@RequestBody @Valid WriteReqBody body) {
 
-        Member actor = getAuthenticatedActor();
+        Member actor = rq.getAuthenticatedActor();
         Post post = postService.write(actor, body.title(), body.content());
 
         return new RsData<>(
@@ -117,21 +117,4 @@ public class ApiV1PostController {
                 new PostDto(post)
         );
     }
-
-    private Member getAuthenticatedActor() {
-
-        String authorizationValue = request.getHeader("Authorization");
-        String apiKey = authorizationValue.substring("Bearer ".length());
-        Optional<Member> opActor = memberService.findByApiKey(apiKey);
-
-        if(opActor.isEmpty()) {
-            throw new ServiceException("401-1", "잘못된 비밀번호 입니다.");
-        }
-
-
-        return opActor.get();
-
-    }
-
-
 }

@@ -3,6 +3,7 @@ package com.example.auth.domain.member.member.controller;
 import com.example.auth.domain.member.member.dto.MemberDto;
 import com.example.auth.domain.member.member.entity.Member;
 import com.example.auth.domain.member.member.service.MemberService;
+import com.example.auth.global.Rq;
 import com.example.auth.global.dto.RsData;
 import com.example.auth.global.exception.ServiceException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +21,7 @@ import java.util.Optional;
 public class ApiV1MemberController {
 
     private final MemberService memberService;
-    private final HttpServletRequest request;
+    private final Rq rq;
 
     record JoinReqBody(@NotBlank @Length(min = 3) String username,
                        @NotBlank @Length(min = 3) String password,
@@ -76,7 +77,7 @@ public class ApiV1MemberController {
 
     @GetMapping("/me")
     public RsData<MemberDto> me() {
-        Member actor = getAuthenticatedActor();
+        Member actor = rq.getAuthenticatedActor();
 
         return new RsData<>(
                 "200-1",
@@ -85,17 +86,5 @@ public class ApiV1MemberController {
         );
     }
 
-    private Member getAuthenticatedActor() {
 
-        String authorizationValue = request.getHeader("Authorization");
-        String apiKey = authorizationValue.substring("Bearer ".length());
-        Optional<Member> opActor = memberService.findByApiKey(apiKey);
-
-        if(opActor.isEmpty()) {
-            throw new ServiceException("401-1", "잘못된 비밀번호 입니다.");
-        }
-
-        return opActor.get();
-
-    }
 }
