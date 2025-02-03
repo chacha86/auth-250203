@@ -121,8 +121,8 @@ public class ApiV1PostController {
     private Member getAuthenticatedActor() {
 
         String authorizationValue = request.getHeader("Authorization");
-        String password2 = authorizationValue.substring("Bearer ".length());
-        Optional<Member> opActor = memberService.findByPassword2(password2);
+        String apiKey = authorizationValue.substring("Bearer ".length());
+        Optional<Member> opActor = memberService.findByApiKey(apiKey);
 
         if(opActor.isEmpty()) {
             throw new ServiceException("401-1", "잘못된 비밀번호 입니다.");
