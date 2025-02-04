@@ -55,4 +55,28 @@ public class Post extends BaseTime {
     public void deleteComment(Comment comment) {
         comments.remove(comment);
     }
+
+    public void canModify(Member actor) {
+        if (actor == null) {
+            throw new ServiceException("401-1", "인증 정보가 없습니다.");
+        }
+
+        if (actor.isAdmin()) return;
+
+        if (actor.equals(this.author)) return;
+
+        throw new ServiceException("403-1", "자신이 작성한 글만 수정 가능합니다.");
+    }
+
+    public void canDelete(Member actor) {
+        if (actor == null) {
+            throw new ServiceException("401-1", "인증 정보가 없습니다.");
+        }
+
+        if (actor.isAdmin()) return;
+
+        if (actor.equals(this.author)) return;
+
+        throw new ServiceException("403-1", "자신이 작성한 글만 삭제 가능합니다.");
+    }
 }
