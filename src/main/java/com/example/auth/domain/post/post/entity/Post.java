@@ -4,8 +4,10 @@ import com.example.auth.domain.member.member.entity.Member;
 import com.example.auth.domain.post.comment.entity.Comment;
 import com.example.auth.global.entity.BaseTime;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,6 +24,18 @@ public class Post extends BaseTime {
     private String content;
 
     @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
-    private List<Comment> comments;
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
 
+    public void addComment(Member author, String content) {
+
+        Comment comment = Comment
+                .builder()
+                .post(this)
+                .author(author)
+                .content(content)
+                .build();
+
+        comments.add(comment);
+    }
 }
