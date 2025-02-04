@@ -9,6 +9,9 @@ import com.example.auth.global.Rq;
 import com.example.auth.global.dto.RsData;
 import com.example.auth.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +20,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/posts/{postId}/comments")
 public class ApiV1CommentController {
+
+
+    @Autowired
+    @Lazy
+    private ApiV1CommentController self;
 
     private final PostService postService;
     private final Rq rq;
@@ -53,18 +61,25 @@ public class ApiV1CommentController {
     @PostMapping
     public RsData<Void> write(@PathVariable long postId, @RequestBody WriteReqBody reqBody) {
         Member actor = rq.getAuthenticatedActor();
-
-        Post post = postService.getItem(postId).orElseThrow(
-                () -> new ServiceException("404-1", "존재하지 않는 게시글입니다.")
-        );
-
-        Comment comment = post.addComment(actor, reqBody.content());
+        Comment comment = self._write(postId, actor, reqBody.content());
 
         return new RsData<>(
                 "201-1",
                 "%d번 댓글 작성이 완료되었습니다.".formatted(comment.getId())
         );
 
+    }
+
+    @Transactional
+    public Comment _write(long postId, Member actor, String content) {
+
+        Post post = postService.getItem(postId).orElseThrow(
+                () -> new ServiceException("404-1", "존재하지 않는 게시글입니다.")
+        );
+
+        Comment comment = post.addComment(actor, content);
+
+        return comment;
     }
 
 
