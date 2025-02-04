@@ -98,7 +98,6 @@ public class ApiV1PostController {
         );
     }
 
-
     record WriteReqBody(
             @NotBlank @Length(min = 3) String title,
             @NotBlank @Length(min = 3) String content
