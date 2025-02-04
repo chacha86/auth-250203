@@ -68,6 +68,33 @@ public class ApiV1CommentController {
 
     }
 
+
+    record ModifyReqBody(String content) {}
+
+    @PutMapping("{id}")
+    @Transactional
+    public RsData<Void> modify(@PathVariable long postId, @PathVariable long id, @RequestBody ModifyReqBody reqBody) {
+
+        Member actor = rq.getAuthenticatedActor();
+        Post post = postService.getItem(postId).orElseThrow(
+                () -> new ServiceException("404-1", "존재하지 않는 게시글입니다.")
+        );
+
+        Comment comment = post.getCommentById(id);
+
+        if(comment.getAuthor().getId() != actor.getId()) {
+            throw new ServiceException("403-1", "자신이 작성한 댓글만 수정 가능합니다.");
+        }
+
+        comment.modify(reqBody.content());
+
+        return new RsData<>(
+                "200-1",
+                "%d번 댓글 수정이 완료되었습니다.".formatted(id)
+        );
+    }
+
+
     public Comment _write(long postId, Member actor, String content) {
 
         Post post = postService.getItem(postId).orElseThrow(
